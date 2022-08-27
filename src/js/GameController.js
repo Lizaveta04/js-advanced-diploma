@@ -21,6 +21,10 @@ export default class GameController {
     this.opponentTypes = [Daemon, Undead, Vampire];
     this.userIndex = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
     this.opponentIndex = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
+    this.characterEnter = -1;
+    this.characterClick = -1;
+    this.emptyCell = -1;
+    this.boardSize = 8;
   }
 
   init() {
@@ -93,31 +97,77 @@ export default class GameController {
 
   onCellClick(index) {
     // TODO: react to click
-    const characterClick = this.position.find(elem => elem.position === index);
-    if(characterClick){
-      const character = characterClick.character;
-      if (character.type === "magician" || character.type === "bowman" || character.type === "swordsman") {
+    if (this.characterClick != -1) {
+      this.gamePlay.deselectCell(this.characterClick);
+    }
+    this.characterClick = this.position.find(elem => elem.position === index);
+    if (this.characterClick) {
+      const character = this.characterClick.character;
+      if (character.type === "bowman" || character.type === "magician" || character.type === "swordsman") {
         this.gamePlay.selectCell(index);
+        this.characterClick = index;
       }
-      else {
+      if (character.type === "daemon" || character.type === "undead" || character.type === "vampire") {
         GamePlay.showError('Ошибка. Вы не можете играть этим персонажем.');
+        this.characterClick = index;
       }
-    } 
-    //this.gamePlay.deselectCell(index);
+    }
   }
 
   onCellEnter(index) {
     // TODO: react to mouse enter
-    this.gamePlay.setCursor(cursors.pointer);
     const ICON_LEVEL = '\u{1F396}';
     const ICON_ATTACK = '\u{2694}';
     const ICON_DEFENCE = '\u{1F6E1}';
     const ICON_HEALTH = '\u{2764}';
-    const characterEnter = this.position.find(elem => elem.position === index);
-    if(characterEnter){
-      const character = characterEnter.character;
-      const message = `${ICON_LEVEL}${character.level}${ICON_ATTACK}${character.attack}${ICON_DEFENCE}${character.defence}${ICON_HEALTH }${character.health}`;
-      this.gamePlay.showCellTooltip(message, index);
+    if (this.characterEnter != -1) {
+      this.gamePlay.setCursor(cursors.auto);
+    }
+    this.characterEnter = this.position.find(elem => elem.position === index);
+    if (this.characterEnter) {
+      const character = this.characterEnter.character;
+      if (character.type === "bowman" || character.type === "magician" || character.type === "swordsman") {
+        this.gamePlay.setCursor(cursors.pointer);
+        const message = `${ICON_LEVEL}${character.level}${ICON_ATTACK}${character.attack}${ICON_DEFENCE}${character.defence}${ICON_HEALTH }${character.health}`;
+        this.gamePlay.showCellTooltip(message, index);
+        this.characterEnter = index;
+      }
+      if (character.type === "daemon" || character.type === "undead" || character.type === "vampire") {
+        this.gamePlay.setCursor(cursors.notallowed);
+        this.characterEnter = index;
+      }
+    }
+    this.emptyCell = this.position.find(elem => elem.position != index);
+    if (this.emptyCell) {
+      if (!this.characterEnter) {
+        this.gamePlay.setCursor(cursors.pointer);
+        this.gamePlay.selectCell(index, 'green');
+        this.emptyCell = index;
+      } 
+    }
+  }
+
+  onMove(distance, player) {
+    if (player.character.type === "swordsman" || player.character.type === "undead") {
+      this.distance === 4;
+    }
+    if (player.character.type === "bowman" || player.character.type === "vampire") {
+      this.distance === 2;
+    }
+    if (player.character.type === "magician" || player.character.type === "daemon") {
+       this.distance === 1;
+    }
+  }
+
+  onAttack(distance, player) {
+    if (player.character.type === "swordsman" || player.character.type === "undead") {
+      this.distance === 1;
+    }
+    if (player.character.type === "bowman" || player.character.type === "vampire") {
+      this.distance === 2;
+    }
+    if (player.character.type === "magician" || player.character.type === "daemon") {
+       this.distance === 4;
     }
   }
 
